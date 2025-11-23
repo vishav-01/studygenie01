@@ -46,7 +46,7 @@ st.markdown(
 # SIDEBAR UI
 # -----------------------------
 with st.sidebar:
-    st.title("StudyGenie — K Edition 💖")
+    st.title("😘 StudyGenie AI Study Bestie 💖")
 
     tool = st.radio(
         "Choose a Tool ✨",

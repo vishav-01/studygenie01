@@ -1,221 +1,83 @@
-import streamlit as st
-import requests
-import json
-import random
-import time
-
-st.set_page_config(page_title="StudyGenie AI Bestie", layout="wide")
-
-# -----------------------------
-# THEME SELECTOR
-# -----------------------------
-theme = st.sidebar.selectbox(
-    "🌈 Choose Theme",
-    ["Pink Pastel", "Sky Blue", "Lavender", "Doraemon"]
-)
-
-theme_colors = {
-    "Sky Blue": "#cfe8ff",
-    "Lavender": "#e6d7ff",
-    "Doraemon": "#44a8ff",
-    "Pink Pastel": "#ffd1dc"
-}
-
-bg_color = theme_colors[theme]
-
-# Apply CSS aesthetic
-st.markdown(
-    f"""
-    <style>
-        .stApp {{
-            background-color: {bg_color} !important;
-        }}
-        section[data-testid="stSidebar"] {{
-            background-color: {bg_color}20 !important;
-        }}
-        html, body, [class*="css"] {{
-            font-family: 'Poppins', sans-serif !important;
-        }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# -----------------------------
-# SIDEBAR
-# -----------------------------
-with st.sidebar:
-
-    st.title("StudyGenie AI Study Bestie 💕")
-
-    tool = st.radio(
-        "Choose a Tool ✨",
-        [
-            "AI Doubt Solver",
-            "Notes Generator",
-            "Summary Maker",
-            "Timetable Builder",
-            "Motivation Booster",
-            "Flashcards",
-            "Brain-Dump Cleaner",
-            "Answer Checker",
-            "AI Planner",
-            "Mindset Reset",
-            "Study Routine Designer",
-            "Exam Strategy Maker",
-            "Personal Study Coach",
-            "Snake Game 🎮"   # ADDED NEW GAME OPTION
-        ]
-    )
-
-# -----------------------------
-# AI CHAT FUNCTION
-# -----------------------------
-def ask_ai(prompt):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {st.secrets['OPENAI_API_KEY']}"
-    }
-
-    payload = {
-        "model": "gpt-4.1-mini",
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 1500,
-        "temperature": 0.65
-    }
-
-    try:
-        r = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers=headers,
-            data=json.dumps(payload),
-            timeout=25
-        )
-        data = r.json()
-
-        if "choices" not in data:
-            return "⚠️ Bestie, I think the AI fainted 😭."
-
-        reply = data["choices"][0]["message"]["content"]
-
-        st.session_state.chat_history.append({"you": prompt, "ai": reply})
-        return reply
-
-    except Exception as e:
-        return "❌ Error: " + str(e)
-
-
-# -----------------------------
-# CHAT HISTORY
-# -----------------------------
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-st.markdown(f"<h1 style='text-align:center;'>✨ {tool} ✨</h1>", unsafe_allow_html=True)
-
-for chat in st.session_state.chat_history:
-    st.markdown(f"**You:** {chat['you']}")
-    st.markdown(f"**Genie:** {chat['ai']}")
-
-prompt = st.text_area("Type your message 💬")
-if st.button("Send"):
-    if prompt.strip():
-        response = ask_ai(f"{tool}: {prompt}")
-        st.markdown(f"**Genie:** {response}")
-
-if st.button("Clear Chat History"):
-    st.session_state.chat_history = []
-    st.rerun()
-
-
 # ---------------------------------------------------
-# (ALL YOUR OLD TOOLS ARE SAME — SKIPPING TO NEW ONE)
+# NEW: IQ TEST GAME (Fun + Smart)
 # ---------------------------------------------------
 
-# ---------------------------------------------------
-# NEW TOOL — SNAKE GAME 🎮
-# ---------------------------------------------------
-if tool == "Snake Game 🎮":
+elif tool == "IQ Test Game":
+    st.markdown("<div class='section'>", unsafe_allow_html=True)
+    st.subheader("🧠 IQ Test Game")
 
-    st.subheader("🐍 Welcome to Snack King — Snake Game!")
+    # Questions (You can add more)
+    questions = [
+        {
+            "q": "If 5 cats catch 5 mice in 5 minutes, how long for 1 cat to catch 1 mouse?",
+            "options": ["5 minutes", "1 minute", "25 minutes", "10 minutes"],
+            "answer": "5 minutes"
+        },
+        {
+            "q": "What comes next in the pattern? 2, 4, 8, 16, __",
+            "options": ["18", "20", "24", "32"],
+            "answer": "32"
+        },
+        {
+            "q": "Which one is different?",
+            "options": ["Apple", "Banana", "Car", "Orange"],
+            "answer": "Car"
+        },
+        {
+            "q": "A cube has how many faces?",
+            "options": ["4", "6", "8", "10"],
+            "answer": "6"
+        },
+        {
+            "q": "Find the odd number: 3, 9, 27, 81, 45",
+            "options": ["3", "9", "27", "45"],
+            "answer": "45"
+        }
+    ]
 
-    GRID = 20
+    # Save game state
+    if "iq_q_index" not in st.session_state:
+        st.session_state.iq_q_index = 0
+        st.session_state.iq_score = 0
+        st.session_state.iq_finished = False
 
-    if "snake" not in st.session_state:
-        st.session_state.snake = [(5, 11), (5, 12), (5, 13)]
-        st.session_state.food = (10, 10)
-        st.session_state.direction = "RIGHT"
-        st.session_state.score = 0
-        st.session_state.game_over = False
+    if st.session_state.iq_q_index < len(questions):
+        qdata = questions[st.session_state.iq_q_index]
 
-    def move():
-        if st.session_state.game_over:
-            return
-        
-        x, y = st.session_state.snake[-1]
+        st.write(f"**Q{st.session_state.iq_q_index + 1}: {qdata['q']}**")
 
-        if st.session_state.direction == "UP":
-            y -= 1
-        elif st.session_state.direction == "DOWN":
-            y += 1
-        elif st.session_state.direction == "LEFT":
-            x -= 1
+        user_ans = st.radio("Choose your answer:", qdata["options"])
+
+        if st.button("Submit"):
+            if user_ans == qdata["answer"]:
+                st.success("Correct bestie 💖😎")
+                st.session_state.iq_score += 1
+            else:
+                st.error(f"Wrong babe 😭 The right answer is **{qdata['answer']}**")
+
+            st.session_state.iq_q_index += 1
+            st.rerun()
+
+    else:
+        st.session_state.iq_finished = True
+
+    # Final Score
+    if st.session_state.iq_finished:
+        st.subheader("🎉 Test Complete!")
+
+        st.write(f"✨ **Your IQ Game Score:** {st.session_state.iq_score} / {len(questions)}")
+
+        if st.session_state.iq_score == len(questions):
+            st.success("BRAIN OF THE YEAR AWARD GOES TO YOU 🧠🏆😍")
+        elif st.session_state.iq_score >= len(questions) - 2:
+            st.info("Smart + cute = you 😭💗")
         else:
-            x += 1
+            st.warning("Bestie… we need to study together tonight 😭😂💞")
 
-        head = (x, y)
+        if st.button("Play Again"):
+            st.session_state.iq_q_index = 0
+            st.session_state.iq_score = 0
+            st.session_state.iq_finished = False
+            st.rerun()
 
-        # collision
-        if x < 0 or x >= GRID or y < 0 or y >= GRID or head in st.session_state.snake:
-            st.session_state.game_over = True
-            return
-
-        st.session_state.snake.append(head)
-
-        # food
-        if head == st.session_state.food:
-            st.session_state.score += 1
-            st.session_state.food = (random.randint(0, GRID-1), random.randint(0, GRID-1))
-        else:
-            st.session_state.snake.pop(0)
-
-    def draw():
-        board = ""
-        for yy in range(GRID):
-            for xx in range(GRID):
-                if (xx, yy) in st.session_state.snake:
-                    board += "🟩"
-                elif (xx, yy) == st.session_state.food:
-                    board += "🍎"
-                else:
-                    board += "⬛"
-            board += "\n"
-        st.text(board)
-
-    st.markdown("### 🎮 Controls")
-
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if st.button("⬅️ Left"):
-            st.session_state.direction = "LEFT"
-    with c2:
-        if st.button("⬆️ Up"):
-            st.session_state.direction = "UP"
-        if st.button("⬇️ Down"):
-            st.session_state.direction = "DOWN"
-    with c3:
-        if st.button("➡️ Right"):
-            st.session_state.direction = "RIGHT"
-
-    if not st.session_state.game_over:
-        move()
-
-    draw()
-
-    st.markdown(f"### ⭐ Score: **{st.session_state.score}**")
-
-    if st.session_state.game_over:
-        st.error("💀 Game Over Bestie!")
-
-
-# END OF CODE
+    st.markdown("</div>", unsafe_allow_html=True)

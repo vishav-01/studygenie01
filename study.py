@@ -1,4 +1,4 @@
-app.py — StudyGenie K-Edition (Sidebar-only tools + 3 themes)
+
 
 import streamlit as st import requests, json, os, io, zipfile, html, random, time from datetime import datetime from typing import List
 

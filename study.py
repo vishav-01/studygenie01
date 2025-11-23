@@ -159,10 +159,6 @@ if tool == "Mini IQ Test Game 🧠":
 if tool == "Mini Snake Game 🐍":
     st.markdown("<h1 style='text-align:center;'>🐍 Mini Snake Game</h1>", unsafe_allow_html=True)
 
-    st.info("Bestie full premium Snake Game needs HTML canvas & JS.  
-            But Streamlit cannot run JS directly 😭  
-            So I added a simple clickable Snake-like game.")
-
     if "snake_score" not in st.session_state:
         st.session_state.snake_score = 0
 

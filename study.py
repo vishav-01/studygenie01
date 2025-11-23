@@ -1,82 +1,98 @@
-import streamlit as st
-import openai
+import requests
+import time
+import html
 
-# ------------------- Page Setup -------------------
-st.set_page_config(page_title="StudyGenie AI", page_icon="✨", layout="centered")
-
-# ------------------- Pastel Background -------------------
-pastel_css = """
-<style>
-body {
-    background-color: #f8e8ff; /* pastel lavender */
-}
-.main {
-    background-color: #ffffffbb !important;
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 20px;
-}
-.chat-bubble-user {
-    background: #d8b4f8;
-    color: black;
-    padding: 10px 15px;
-    border-radius: 15px;
-    margin: 5px 0;
-    width: fit-content;
-    max-width: 80%;
-}
-.chat-bubble-bot {
-    background: #c9f4ff;
-    color: black;
-    padding: 10px 15px;
-    border-radius: 15px;
-    margin: 5px 0;
-    width: fit-content;
-    max-width: 80%;
-}
-</style>
-"""
-
-st.markdown(pastel_css, unsafe_allow_html=True)
-
-# ------------------- API Key -------------------
-openai.api_key = "YOUR_OPENAI_API_KEY"
-
-# ------------------- Session State -------------------
-if "history" not in st.session_state:
-    st.session_state.history = []
-
-# ------------------- Title -------------------
-st.markdown("<h1 style='text-align:center;'>✨ StudyGenie AI Chat ✨</h1>", unsafe_allow_html=True)
-
-# ------------------- Chat Display -------------------
-for role, msg in st.session_state.history:
-    if role == "user":
-        st.markdown(f"<div class='chat-bubble-user'><b>You:</b> {msg}</div>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<div class='chat-bubble-bot'><b>Genie:</b> {msg}</div>", unsafe_allow_html=True)
-
-# ------------------- User Input -------------------
-user_input = st.text_input("Type your message…", "")
-
-# ------------------- Handle Message -------------------
-if st.button("Send") and user_input.strip():
-    st.session_state.history.append(("user", user_input))
-
-    # AI response
+def wiki_fallback_summary(query):
+    """Quick Wikipedia summary fallback (no API key)."""
     try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are StudyGenie, a helpful AI."},
-            ] + [{"role": role, "content": msg} for role, msg in st.session_state.history]
-        )
+        q = requests.get("https://en.wikipedia.org/api/rest_v1/page/summary/" + requests.utils.quote(query), timeout=8)
+        if q.status_code == 200:
+            j = q.json()
+            return j.get("extract") or j.get("title") or ""
+    except Exception:
+        return ""
+    return ""
 
-        bot_reply = response.choices[0].message["content"]
-        st.session_state.history.append(("assistant", bot_reply))
+def demo_fallback(query):
+    """Canned demo answer if no external info available (short and sweet)."""
+    return f"(Demo answer) I cannot reach the AI right now. Quick tip: {query[:120]} — try re-asking with more context or check your OpenAI billing."
 
-    except Exception as e:
-        bot_reply = f"Error: {str(e)} 😭"
-        st.session_state.history.append(("assistant", bot_reply))
+def ask_ai_with_fallback(prompt, preferred_models=None, max_retries=2, temperature=0.45, max_tokens=350):
+    """
+    Robust call with graceful fallback:
+      - returns AI text if ok
+      - if quota/rate-limit or API error -> try Wikipedia summary -> else demo message
+    """
+    key = st.secrets.get("OPENAI_API_KEY", "")
+    if not key:
+        return "❌ No OpenAI key found. Add OPENAI_API_KEY to Streamlit Secrets or use demo mode."
 
-    st.experimental_rerun()
+    if preferred_models is None:
+        preferred_models = ["gpt-5-mini", "gpt-4o-mini", "gpt-4.1-mini", "gpt-3.5-turbo"]
+
+    headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+    payload_base = {
+        "messages": [
+            {"role":"system","content":"You are StudyGenie — concise, helpful, Gen-Z friendly."},
+            {"role":"user","content": prompt}
+        ],
+        "temperature": temperature,
+        "max_tokens": max_tokens
+    }
+
+    for model in preferred_models:
+        attempt = 0
+        while attempt <= max_retries:
+            attempt += 1
+            payload = dict(payload_base); payload["model"] = model
+            try:
+                resp = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=25)
+            except Exception as e:
+                if attempt > max_retries:
+                    # network failure -> fallback
+                    wiki = wiki_fallback_summary(prompt)
+                    return wiki or demo_fallback(prompt)
+                time.sleep(0.6 * attempt)
+                continue
+
+            # if response not JSON or error
+            try:
+                j = resp.json()
+            except Exception:
+                if attempt > max_retries:
+                    wiki = wiki_fallback_summary(prompt)
+                    return wiki or demo_fallback(prompt)
+                time.sleep(0.4); continue
+
+            # If API returned an error object
+            if "error" in j:
+                err_msg = j["error"].get("message", "")
+                # detect common quota or rate-limit cases and fallback
+                low = err_msg.lower()
+                if "quota" in low or "insufficient_quota" in low or "rate limit" in low or resp.status_code in (429, 402):
+                    # Friendly user-facing message + fallback
+                    wiki = wiki_fallback_summary(prompt)
+                    if wiki:
+                        return "(Fallback) Quick wiki summary since AI quota limited:\n\n" + wiki
+                    return "(AI unavailable due to quota or rate limits.) " + demo_fallback(prompt)
+                # Other errors -> try again or break
+                if attempt <= max_retries and resp.status_code >= 500:
+                    time.sleep(1.0 * attempt); continue
+                return f"❌ AI error: {err_msg}"
+
+            # Successful choices
+            choices = j.get("choices")
+            if not choices:
+                if attempt <= max_retries:
+                    time.sleep(0.4); continue
+                break
+            message = choices[0].get("message") or {}
+            content = message.get("content") or message.get("text") or ""
+            if content:
+                return content.strip()
+            if attempt <= max_retries:
+                time.sleep(0.3); continue
+
+    # exhausted models -> fallback
+    wiki = wiki_fallback_summary(prompt)
+    return "(Fallback) " + (wiki or demo_fallback(prompt))

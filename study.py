@@ -17,7 +17,7 @@ THEMES = {
     "Sky Pastel": """
         <style>
         body { background-color: #87ceeb; }
-        .main { background-color: #f2f8ff; }
+        .main { background-color: #040720; }
         </style>
     """,
     "Doraemon": """

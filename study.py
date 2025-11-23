@@ -10,19 +10,19 @@ st.set_page_config(page_title="StudyGenie — K Edition", layout="wide")
 THEMES = {
     "K-Pink": """
         <style>
-        body { background-color: #ffe7f3; }
+        body { background-color: #ffb7ce; }
         .main { background-color: #fff0f8; }
         </style>
     """,
     "Sky Pastel": """
         <style>
-        body { background-color: #e7f3ff; }
+        body { background-color: #87ceeb; }
         .main { background-color: #f2f8ff; }
         </style>
     """,
     "Doraemon": """
         <style>
-        body { background-color: #d7ecff; }
+        body { background-color: #0000ff; }
         .main { background-color: #ffffff; }
         h1, h2, h3, p { color: #005bbb !important; }
         </style>

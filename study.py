@@ -8,41 +8,25 @@ st.set_page_config(page_title="StudyGenie — K Edition", layout="wide")
 # THEME SYSTEM (3 Themes)
 # -----------------------------
 THEMES = {
-    "Pink K-Pop Glow": {
-        # Baby Pink Background & K-Pink Text
-        "page_bg": "#f9e7f7", 
-        "tile_border": "#ff69b4", # Bright Pink Border
-        "css_extras": """
-            /* Text Color adjustment for better visibility on light pink */
-            html, body, [data-testid="stAppViewContainer"] {
-                color: #ff1493; /* Deep K-Pink text color */
-            }
-        """,
-    },
-    "Sky Pastel Dream": {
-        # Lavender Background & Dark Blue Text
-        "page_bg": "#e6e6fa", # Lavender background
-        "tile_border": "#00008b", # Dark Blue Border
-        "css_extras": """
-            /* Dark Blue Text color */
-            html, body, [data-testid="stAppViewContainer"], 
-            h1, h2, h3, p, .stMarkdown {
-                color: #00008b !important; 
-            }
-        """,
-    },
-    "Doraemon Playroom": {
-        # Sky Blue Background & Doraemon Blue Text
-        "page_bg": "#87ceeb", # Sky Blue background
-        "tile_border": "#005bbb", # Doraemon Blue Border
-        "css_extras": """
-            /* Doraemon Blue Text color */
-            html, body, [data-testid="stAppViewContainer"],
-            h1, h2, h3, p, .stMarkdown {
-                color: #005bbb !important; 
-            }
-        """,
-    }
+    "K-Pink": """
+        <style>
+        body { background-color: #f9e7f7; }
+        .main { background-color: ##ff69b4; }
+        </style>
+    """,
+    "Sky Pastel": """
+        <style>
+        body { background-color: #e6e6fa; }
+        .main { background-color: #00008b; }
+        </style>
+    """,
+    "Doraemon": """
+        <style>
+        body { background-color: #87ceeb; }
+        .main { background-color: #ffffff; }
+        h1, h2, h3, p { color: #005bbb !important; }
+        </style>
+    """
 }
 
 # Load saved theme

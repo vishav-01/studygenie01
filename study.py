@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import json
 
-st.set_page_config(page_title="StudyGenie — K Edition", layout="wide")
+st.set_page_config(page_title="StudyGenie AI Bestie", layout="wide")
 
 # -----------------------------
 
@@ -14,10 +14,11 @@ theme = st.sidebar.selectbox(
 
 # ---- THEME COLORS ----
 theme_colors = {
+    "Doraemon": "#44a8ff"
     "Pink Pastel": "#ffd1dc",
     "Sky Blue": "#cfe8ff",
     "Lavender": "#e6d7ff",
-    "Doraemon": "#44a8ff"
+    
 }
 
 bg_color = theme_colors[theme]

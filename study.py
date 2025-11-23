@@ -1,7 +1,6 @@
 
 Config + storage
 
----------------------------
 
 st.set_page_config(page_title="StudyGenie — K-Edition", layout="wide") USER_DB = "users.json" PROFILE_DB = "profiles.json" CHAT_DB = "chat_history.json"
 

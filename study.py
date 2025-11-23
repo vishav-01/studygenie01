@@ -84,12 +84,10 @@ for model in preferred_models:
             if "quota" in low or "rate limit" in low or r.status_code in (429,402):
                 wiki = wiki_fallback_summary(prompt)
                 if wiki:
-                    ans = "(Fallback) Quick wiki summary:
 
 " + wiki st.session_state.ai_cache[prompt] = ans return ans demo = "(Demo) AI unavailable due to quota or rate limits." st.session_state.ai_cache[prompt] = demo return demo continue choices = j.get("choices") if not choices: continue content = choices[0].get("message", {}).get("content", "").strip() if content: st.session_state.ai_cache[prompt] = content return content except Exception: continue wiki = wiki_fallback_summary(prompt) ans = "(Fallback) " + (wiki or "AI is unavailable right now. Try again later.") st.session_state.ai_cache[prompt] = ans return ans
 
----------------------------
-
+------------------------
 Prompt router
 
 ---------------------------

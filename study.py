@@ -137,7 +137,6 @@ st.markdown("<div class='app-shell'>", unsafe_allow_html=True) st.markdown(f"<h1
 
 ---------------------------
 
-Tiles view (visual only) — clicking tiles not used for access (sidebar-only requirement)
 
 ---------------------------
 

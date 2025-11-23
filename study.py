@@ -39,7 +39,6 @@ st.markdown(THEMES[st.session_state.theme], unsafe_allow_html=True)
 # SIDEBAR UI
 # -----------------------------
 with st.sidebar:
-    st.image("https://i.imgur.com/4QZclRq.png", width=130)  # cute Doraemon / pastel logo
 
     st.title("StudyGenie — K Edition")
 

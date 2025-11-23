@@ -14,10 +14,10 @@ theme = st.sidebar.selectbox(
 
 # ---- THEME COLORS ----
 theme_colors = {
-    "Doraemon": "#44a8ff"
+    "Doraemon": "#44a8ff",
     "Pink Pastel": "#ffd1dc",
     "Sky Blue": "#cfe8ff",
-    "Lavender": "#e6d7ff",
+    "Lavender": "#e6d7ff"
     
 }
 

@@ -13,11 +13,11 @@ theme = st.sidebar.selectbox(
 )
 
 # ---- THEME COLORS ----
-theme_colors = {
+theme_colors = {"Sky Blue": "#cfe8ff",
+    "Lavender": "#e6d7ff",
     "Doraemon": "#44a8ff",
-    "Pink Pastel": "#ffd1dc",
-    "Sky Blue": "#cfe8ff",
-    "Lavender": "#e6d7ff"
+    "Pink Pastel": "#ffd1dc"
+    
     
 }
 
@@ -50,7 +50,7 @@ st.markdown(
 # -----------------------------
 with st.sidebar:
 
-    st.title("StudyGenie — K Edition")
+    st.title("StudyGenie AI Study Bestie")
 
     
 
@@ -85,7 +85,7 @@ def ask_ai(prompt):
     payload = {
         "model": "gpt-4.1-mini",
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 3500,
+        "max_tokens": 1500,
         "temperature": 0.65
     }
 

@@ -64,8 +64,7 @@ with st.sidebar:
             "Study Routine Designer",
             "Exam Strategy Maker",
             "Personal Study Coach",
-            "Mini IQ Test Game 🧠",
-            "Mini Snake Game 🐍"
+            "Mini IQ Test Game 🧠"
         ]
     )
 
@@ -107,8 +106,7 @@ def ask_ai(prompt):
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Normal tools output
-if tool not in ["Mini IQ Test Game 🧠", "Mini Snake Game 🐍"]:
+if tool != "Mini IQ Test Game 🧠":
     st.markdown(f"<h1 style='text-align:center;'>✨ {tool} ✨</h1>", unsafe_allow_html=True)
 
     for chat in st.session_state.chat_history:
@@ -116,6 +114,7 @@ if tool not in ["Mini IQ Test Game 🧠", "Mini Snake Game 🐍"]:
         st.markdown(f"**Genie:** {chat['ai']}")
 
     prompt = st.text_area("Type your message 💬")
+
     if st.button("Send"):
         if prompt.strip() != "":
             response = ask_ai(f"{tool}: {prompt}")
@@ -126,47 +125,68 @@ if tool not in ["Mini IQ Test Game 🧠", "Mini Snake Game 🐍"]:
         st.rerun()
 
 
-# ============================
-# 🧠 MINI IQ TEST GAME
-# ============================
+# =====================================================
+# 🧠 MULTI-LEVEL IQ TEST GAME (EASY / MEDIUM / HARD)
+# =====================================================
 if tool == "Mini IQ Test Game 🧠":
-    st.markdown("<h1 style='text-align:center;'>🧠 Mini IQ Test Game</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center;'>🧠 Multi-Level IQ Test</h1>", unsafe_allow_html=True)
 
-    if "iq_answer" not in st.session_state:
-        num1 = random.randint(10, 99)
-        num2 = random.randint(10, 99)
-        st.session_state.iq_question = f"{num1} + {num2}"
-        st.session_state.iq_answer = num1 + num2
+    # Level Selector
+    level = st.selectbox(
+        "Choose Difficulty 🎯",
+        ["Easy", "Medium", "Hard"]
+    )
 
+    # IQ Question Generator
+    def generate_question(level):
+        if level == "Easy":
+            a = random.randint(5, 20)
+            b = random.randint(5, 20)
+            return f"{a} + {b}", a + b
+
+        elif level == "Medium":
+            a = random.randint(10, 40)
+            b = random.randint(10, 40)
+            return f"{a} × {b}", a * b
+
+        elif level == "Hard":
+            a = random.randint(50, 150)
+            b = random.randint(2, 12)
+            c = random.randint(10, 50)
+            expr = f"({a} ÷ {b}) + {c}"
+            return expr, (a / b) + c
+
+    # Store Question
+    if "iq_question" not in st.session_state:
+        q, ans = generate_question(level)
+        st.session_state.iq_question = q
+        st.session_state.iq_answer = ans
+        st.session_state.iq_level = level
+
+    # New question when level changes
+    if level != st.session_state.iq_level:
+        q, ans = generate_question(level)
+        st.session_state.iq_question = q
+        st.session_state.iq_answer = ans
+        st.session_state.iq_level = level
+
+    # Display Question
     st.subheader(f"Solve this bestie 👉 {st.session_state.iq_question}")
 
-    user_ans = st.number_input("Your answer:", step=1)
+    user_ans = st.text_input("Your answer:")
 
     if st.button("Submit Answer"):
-        if user_ans == st.session_state.iq_answer:
-            st.success("💖 Yesss bestieee! You’re a genius 😭🔥")
-        else:
-            st.error("😭 Wrong babe… try again, I believe in you 💕")
+        try:
+            if float(user_ans) == float(st.session_state.iq_answer):
+                st.success("💖 AYYYYE you got it right bestie!! Smartest alive 😭🔥")
+            else:
+                st.error("😭 Wrong babe… but I still love you, try again 💗")
+        except:
+            st.warning("Enter a valid number babe 😭💗")
 
     if st.button("New Question"):
-        st.session_state.pop("iq_answer")
-        st.rerun()
-
-
-# ============================
-# 🐍 MINI SNAKE GAME
-# ============================
-if tool == "Mini Snake Game 🐍":
-    st.markdown("<h1 style='text-align:center;'>🐍 Mini Snake Game</h1>", unsafe_allow_html=True)
-
-    if "snake_score" not in st.session_state:
-        st.session_state.snake_score = 0
-
-    if st.button("Eat Fruit 🍎"):
-        st.session_state.snake_score += 1
-
-    st.write(f"Score: **{st.session_state.snake_score}**")
-
-    if st.button("Reset Game"):
-        st.session_state.snake_score = 0
+        q, ans = generate_question(level)
+        st.session_state.iq_question = q
+        st.session_state.iq_answer = ans
+        st.session_state.iq_level = level
         st.rerun()

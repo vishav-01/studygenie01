@@ -1,1 +1,0 @@
-# studygenie01

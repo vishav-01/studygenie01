@@ -94,17 +94,23 @@ def ask_ai(prompt):
 
         reply = data["choices"][0]["message"]["content"]
         st.session_state.chat_history.append({"you": prompt, "ai": reply})
+
+        # auto-clear input box
+        st.session_state["clear_input"] = True
+
         return reply
 
     except Exception as e:
         return "❌ Error: " + str(e)
-
 
 # -----------------------------
 # CHAT SYSTEM
 # -----------------------------
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
+if "clear_input" not in st.session_state:
+    st.session_state.clear_input = False
 
 if tool != "Mini IQ Test Game 🧠":
     st.markdown(f"<h1 style='text-align:center;'>✨ {tool} ✨</h1>", unsafe_allow_html=True)
@@ -113,87 +119,76 @@ if tool != "Mini IQ Test Game 🧠":
         st.markdown(f"**You:** {chat['you']}")
         st.markdown(f"**Genie:** {chat['ai']}")
 
-    prompt = st.text_area("Type your message 💬")
+    # auto-clear after send
+    default_text = "" if st.session_state.clear_input else st.session_state.get("last_prompt", "")
+    prompt = st.text_area("Type your message 💬", value=default_text)
+    st.session_state.last_prompt = prompt
 
     if st.button("Send"):
         if prompt.strip() != "":
+            st.session_state.clear_input = True
             response = ask_ai(f"{tool}: {prompt}")
             st.markdown(f"**Genie:** {response}")
+            st.session_state.last_prompt = ""
 
     if st.button("Clear Chat History"):
         st.session_state.chat_history = []
+        st.session_state.last_prompt = ""
+        st.session_state.clear_input = True
         st.rerun()
 
 
 # =====================================================
-# 🧠 CUSTOM IQ TEST GAME — YOUR QUESTIONS ADDED
+# 🧠 NEW IQ TEST GAME WITH 25 REAL QUESTIONS
 # =====================================================
 if tool == "Mini IQ Test Game 🧠":
-    st.markdown("<h1 style='text-align:center;'>🧠 Multi-Level IQ Test</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center;'>🧠 Mini IQ Test (K-Edition)</h1>", unsafe_allow_html=True)
 
-    # -----------------------------
-    # QUESTION BANK (YOUR QUESTIONS)
-    # -----------------------------
+    level = st.selectbox("Choose Difficulty 🎯", ["Easy", "Medium", "Hard"])
 
-    EASY_QUESTIONS = [
+    iq_questions = [
+        ("What number comes next? 2,6,12,20,30,__", "42"),
         ("Which one is different? Cat — Dog — Lion — Wolf", "Cat"),
-        ("What is the missing letter? A, D, G, J, M, ____", "P"),
-        ("Rearrange the letters to make a word: A P L E P", "APPLE"),
-        ("Which shape has the most sides? Pentagon — Hexagon — Octagon — Heptagon", "Octagon"),
-        ("Sun : Day :: Moon : ____", "Night"),
-        ("Which weighs more? 1 kg iron or 1 kg cotton?", "Same"),
-        ("What comes next? ⬛⬜⬛⬜ → ⬜⬛⬜⬛ → ⬛⬜⬛⬜ → ?", "⬜⬛⬜⬛")
+        ("If ALL roses are flowers... conclusion?", "B"),
+        ("Which figure completes pattern?⬜⬜⬛⬜ / ⬛⬜⬛⬜ / ⬜⬛⬜⬛", "⬛⬜⬛⬜"),
+        ("Missing letter? A, D, G, J, M, __", "P"),
+        ("If TRAP→WSDS (+3), COLD becomes?", "FROG"),
+        ("Find odd number: 27,64,125,144,216", "144"),
+        ("Angle at 3:15?", "7.5"),
+        ("Series: 5,9,17,33,__", "65"),
+        ("If 1=3,2=3,3=5,4=4 then 5=?", "4"),
+        ("Rearrange: A P L E P", "APPLE"),
+        ("Most sides? Pentagon, Hexagon, Octagon, Heptagon", "Octagon"),
+        ("Solve: (3×4)² ÷ 6", "24"),
+        ("Add to 25 & multiply to 126", "9 and 14"),
+        ("If TODAY = 23, HAPPY = ?", "50"),
+        ("Cube has 3 faces painted red, how many not painted?", "3"),
+        ("Which word doesn't belong? Blue Red Circle Green Yellow", "Circle"),
+        ("Which fraction bigger? 3/7 or 4/9", "4/9"),
+        ("Analogy: Sun:Day :: Moon:__", "Night"),
+        ("Train 6:45 → 9:15 duration?", "2.5 hours"),
+        ("Next: BB, DDD, FFFF, HHHHH,__", "JJJJJJ"),
+        ("Perimeter 30, length 9, width?", "6"),
+        ("Which weighs more? 1kg iron or 1kg cotton", "Same"),
+        ("45% of 200", "90"),
+        ("12 edges + 8 vertices = which 3D shape?", "Cube")
     ]
 
-    MEDIUM_QUESTIONS = [
-        ("What number comes next? 2, 6, 12, 20, 30, ____", "42"),
-        ("What is the missing letter? B, E, H, K, N, ____", "Q"),
-        ("Find the odd number: 27 — 64 — 125 — 144 — 216", "144"),
-        ("Which number completes the series? 5, 9, 17, 33, ____", "65"),
-        ("A clock shows 3:15. What is the angle between hour & minute hand?", "7.5"),
-        ("Solve: (3 × 4)² ÷ 6 = ?", "8"),
-        ("What fraction is bigger? 3/7 or 4/9?", "4/9")
-    ]
+    if "current_q" not in st.session_state:
+        st.session_state.current_q = random.choice(iq_questions)
 
-    HARD_QUESTIONS = [
-        ("If TRAP becomes WSDS (+3 letters), what does COLD become?", "FROG"),
-        ("What comes next? 11, 13, 17, 19, 23, ____", "29"),
-        ("Solve: 45% of 200 = ?", "90"),
-        ("If 1 = 3, 2 = 3, 3 = 5, 4 = 4, then 5 = ?", "4"),
-        ("Complete the analogy: BB, DDD, FFFF, HHHHH, ____", "JJJJJJ"),
-        ("Complete: AZ, BY, CX, DW, ____", "EV"),
-        ("Find the odd one: Blue — Red — Circle — Green — Yellow", "Circle")
-    ]
+    question, answer = st.session_state.current_q
 
-    # Level selector
-    level = st.selectbox(
-        "Choose Difficulty 🎯",
-        ["Easy", "Medium", "Hard"]
-    )
+    st.subheader(f"👉 {question}")
 
-    # Select question set based on level
-    if level == "Easy":
-        qset = EASY_QUESTIONS
-    elif level == "Medium":
-        qset = MEDIUM_QUESTIONS
-    else:
-        qset = HARD_QUESTIONS
-
-    # Create new question if needed
-    if "iq_q" not in st.session_state:
-        st.session_state.iq_q, st.session_state.iq_a = random.choice(qset)
-
-    # Display question
-    st.subheader(f"Bestie solve this 👉 {st.session_state.iq_q}")
-
-    user_ans = st.text_input("Your answer:")
+    user_input = st.text_input("Your answer:")
 
     if st.button("Submit Answer"):
-        if user_ans.strip().lower() == str(st.session_state.iq_a).lower():
-            st.success("💖 YESS BABE YOU’RE A GENIUS OMG 😭🔥")
+        if user_input.strip().lower() == str(answer).lower():
+            st.success("🔥 Correct bestie!! Genius mode unlocked 💖")
         else:
-            st.error(f"😭 Wrong babe… correct is: {st.session_state.iq_a}")
+            st.error(f"😭 Wrong babe… correct answer was **{answer}** 💗")
 
     if st.button("New Question"):
-        st.session_state.iq_q, st.session_state.iq_a = random.choice(qset)
+        st.session_state.current_q = random.choice(iq_questions)
         st.rerun()

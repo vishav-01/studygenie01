@@ -51,8 +51,7 @@ with st.sidebar:
 
     st.title("StudyGenie — K Edition")
 
-    theme_choice = st.selectbox("Select Theme 💖", ["K-Pink", "Sky Pastel", "Doraemon"])
-    st.session_state.theme = theme_choice
+    
 
     tool = st.radio(
         "Choose a Tool ✨",

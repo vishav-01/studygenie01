@@ -5,35 +5,44 @@ import json
 st.set_page_config(page_title="StudyGenie — K Edition", layout="wide")
 
 # -----------------------------
-# THEME SYSTEM (3 Themes)
-# -----------------------------
-THEMES = {
-    "K-Pink": """
-        <style>
-        body { background-color: #f9e7f7; }
-        .main { background-color: ##ff69b4; }
-        </style>
-    """,
-    "Sky Pastel": """
-        <style>
-        body { background-color: #e6e6fa; }
-        .main { background-color: #00008b; }
-        </style>
-    """,
-    "Doraemon": """
-        <style>
-        body { background-color: #87ceeb; }
-        .main { background-color: #ffffff; }
-        h1, h2, h3, p { color: #005bbb !important; }
-        </style>
-    """
+
+# ---- THEME SELECTOR ----
+theme = st.sidebar.selectbox(
+    "🌈 Choose Theme",
+    ["Pink Pastel", "Sky Blue", "Lavender", "Doraemon"]
+)
+
+# ---- THEME COLORS ----
+theme_colors = {
+    "Pink Pastel": "#ffd1dc",
+    "Sky Blue": "#cfe8ff",
+    "Lavender": "#e6d7ff",
+    "Doraemon": "#44a8ff"
 }
 
-# Load saved theme
-if "theme" not in st.session_state:
-    st.session_state.theme = "K-Pink"
+bg_color = theme_colors[theme]
 
-st.markdown(THEMES[st.session_state.theme], unsafe_allow_html=True)
+# ---- APPLY CSS ----
+st.markdown(
+    f"""
+    <style>
+        .stApp {{
+            background-color: {bg_color} !important;
+        }}
+
+        /* Fix sidebar color too */
+        section[data-testid="stSidebar"] {{
+            background-color: {bg_color}20 !important;
+        }}
+
+        /* Make text aesthetic */
+        html, body, [class*="css"]  {{
+            font-family: 'Poppins', sans-serif !important;
+        }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # -----------------------------
 # SIDEBAR UI

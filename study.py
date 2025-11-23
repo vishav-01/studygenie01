@@ -255,7 +255,7 @@ if tool == "Answer Checker":
     st.info("Paste the question and student's answer separated by a new line. First line = Question, second line = Answer.")
     if st.button("Check Answer"):
         txt = st.session_state.get(f"input_{tool}", "").strip()
-        if not txt or "
+        
 
 " not in txt: st.warning("Paste question and answer separated by a newline.") else: q,a = txt.split(" ",1) out = ask_ai_with_fallback(f"Question: {q} Student answer: {a} Grade and correct briefly.") st.markdown(f"<div class='chat-box chat-assistant'>{out}</div>", unsafe_allow_html=True)
 

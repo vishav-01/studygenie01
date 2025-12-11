@@ -1,107 +1,211 @@
+import streamlit as st
+import requests
+import json
+import random
+
 # =====================================================
-# 🧠 NEW IQ TEST GAME (MCQ VERSION) — Doraemon Blue Default
+# PAGE CONFIG
+# =====================================================
+st.set_page_config(page_title="StudyGenie — K Edition", layout="wide")
+
+# =====================================================
+# THEME SYSTEM (Default: Doraemon Blue Gradient)
+# =====================================================
+theme = st.sidebar.selectbox(
+    "🌈 Choose Theme",
+    ["Doraemon", "Sky Blue", "Pink Pastel", "Lavender"],
+    index=0  # Default
+)
+
+theme_colors = {
+    "Doraemon": ("#5EC2FF", "#0089E0"),  # Gradient
+    "Sky Blue": ("#d2eaff", "#8cc8ff"),
+    "Pink Pastel": ("#ffd6e8", "#ffa4c8"),
+    "Lavender": ("#e7d9ff", "#c7a4ff")
+}
+
+grad_start, grad_end = theme_colors[theme]
+
+# =====================================================
+# APPLY CSS GRADIENT
+# =====================================================
+st.markdown(
+    f"""
+    <style>
+        .stApp {{
+            background: linear-gradient(135deg, {grad_start}, {grad_end}) !important;
+            color: #000000;
+        }}
+        section[data-testid="stSidebar"] {{
+            background: rgba(255,255,255,0.3) !important;
+            backdrop-filter: blur(4px);
+        }}
+        html, body, [class*="css"] {{
+            font-family: 'Poppins', sans-serif !important;
+        }}
+        .question-box {{
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 18px;
+            font-size: 19px;
+            border: 2px solid #ffffff55;
+        }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# =====================================================
+# SIDEBAR — MAIN MENU
+# =====================================================
+with st.sidebar:
+    st.title("😘 StudyGenie — Your AI Bestie 💖")
+
+    tool = st.radio(
+        "Choose a Tool ✨",
+        [
+            "AI Doubt Solver",
+            "Notes Generator",
+            "Summary Maker",
+            "Timetable Builder",
+            "Motivation Booster",
+            "Flashcards",
+            "Brain-Dump Cleaner",
+            "Answer Checker",
+            "AI Planner",
+            "Mindset Reset",
+            "Study Routine Designer",
+            "Exam Strategy Maker",
+            "Personal Study Coach",
+            "Mini IQ Test Game 🧠"
+        ]
+    )
+
+# =====================================================
+# CHAT HISTORY SETUP
+# =====================================================
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+if "clear_input" not in st.session_state:
+    st.session_state.clear_input = False
+
+# =====================================================
+# BACKEND AI CALL
+# =====================================================
+def ask_ai(prompt):
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {st.secrets['OPENAI_API_KEY']}"
+    }
+
+    payload = {
+        "model": "gpt-4.1-mini",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 4000,
+        "temperature": 0.65
+    }
+
+    try:
+        r = requests.post("https://api.openai.com/v1/chat/completions",
+                          headers=headers, data=json.dumps(payload), timeout=20)
+        data = r.json()
+
+        if "choices" not in data:
+            return "⚠️ Bestie the AI fainted 😭"
+
+        reply = data["choices"][0]["message"]["content"]
+
+        st.session_state.chat_history.append({"you": prompt, "ai": reply})
+        st.session_state["clear_input"] = True
+        return reply
+
+    except Exception as e:
+        return "❌ Error: " + str(e)
+
+# =====================================================
+# NORMAL TOOLS (Everything except IQ Game)
+# =====================================================
+if tool != "Mini IQ Test Game 🧠":
+    st.markdown(f"<h1 style='text-align:center;'>✨ {tool} ✨</h1>", unsafe_allow_html=True)
+
+    # Display chat history
+    for chat in st.session_state.chat_history:
+        st.markdown(f"**You:** {chat['you']}")
+        st.markdown(f"**Genie:** {chat['ai']}")
+
+    default_text = "" if st.session_state.clear_input else st.session_state.get("last_prompt", "")
+    prompt = st.text_area("Type your message 💬", value=default_text)
+    st.session_state.last_prompt = prompt
+
+    if st.button("Send"):
+        if prompt.strip() != "":
+            st.session_state.clear_input = True
+            response = ask_ai(f"{tool}: {prompt}")
+            st.markdown(f"**Genie:** {response}")
+            st.session_state.last_prompt = ""
+
+    if st.button("Clear Chat History"):
+        st.session_state.chat_history = []
+        st.session_state.last_prompt = ""
+        st.session_state.clear_input = True
+        st.rerun()
+
+# =====================================================
+# MINI IQ TEST GAME 🧠
 # =====================================================
 if tool == "Mini IQ Test Game 🧠":
 
-    st.markdown("<h1 style='text-align:center;'>🧠 Mini IQ Test (K-Edition)</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center;'>🧠 Mini IQ Test (MCQ Edition)</h1>", unsafe_allow_html=True)
 
-    # Default background override for IQ test
-    st.markdown("""
-        <style>
-            .stApp {
-                background-color: #44a8ff !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    level = st.selectbox("Choose Difficulty 🎯", ["Easy", "Medium", "Hard"])
-
-    # -----------------------------
-    # MCQ QUESTION BANK
-    # -----------------------------
+    # -------------- IQ QUESTIONS --------------
     iq_mcq = [
-        {
-            "q": "What number comes next? 2, 6, 12, 20, 30, __",
-            "options": ["A) 36", "B) 40", "C) 42", "D) 48"],
-            "answer": "C"
-        },
-        {
-            "q": "Which one is different?",
-            "options": ["A) Dog", "B) Lion", "C) Wolf", "D) Cat"],
-            "answer": "D"
-        },
-        {
-            "q": "If ALL roses are flowers, which is true?",
-            "options": [
-                "A) Some roses are not flowers",
-                "B) All roses are flowers",
-                "C) No roses are flowers",
-                "D) Flowers aren't roses"
-            ],
-            "answer": "B"
-        },
-        {
-            "q": "Missing letter? A, D, G, J, M, __",
-            "options": ["A) O", "B) P", "C) R", "D) S"],
-            "answer": "B"
-        },
-        {
-            "q": "Find the odd number:",
-            "options": ["A) 27", "B) 64", "C) 125", "D) 144"],
-            "answer": "D"
-        },
-        {
-            "q": "Angle at 3:15?",
-            "options": ["A) 0°", "B) 7.5°", "C) 15°", "D) 22.5°"],
-            "answer": "B"
-        },
-        {
-            "q": "Which fraction is bigger?",
-            "options": ["A) 3/7", "B) 4/9", "C) Both equal", "D) None"],
-            "answer": "B"
-        },
-        {
-            "q": "Sun : Day :: Moon : __",
-            "options": ["A) Light", "B) Night", "C) Sky", "D) Cloud"],
-            "answer": "B"
-        },
-        {
-            "q": "BB, DDD, FFFF, HHHHH, __",
-            "options": ["A) JJJJJJ", "B) KKKKKK", "C) LLLLLL", "D) MMMMMM"],
-            "answer": "A"
-        },
-        {
-            "q": "Which weighs more?",
-            "options": [
-                "A) 1kg iron", 
-                "B) 1kg cotton", 
-                "C) Both same", 
-                "D) Can't say"
-            ],
-            "answer": "C"
-        }
+        ("What number comes next? 2, 6, 12, 20, 30, __",
+         ["36", "40", "42", "44"], "42"),
+
+        ("Which one is different?",
+         ["Cat", "Dog", "Lion", "Wolf"], "Cat"),
+
+        ("Conclusion? If ALL roses are flowers and SOME flowers fade quickly…",
+         ["All roses fade quickly", "Some roses may fade quickly", "No roses fade quickly"], "Some roses may fade quickly"),
+
+        ("Missing letter? A, D, G, J, M, __",
+         ["O", "P", "N", "Q"], "P"),
+
+        ("Odd number: 27,64,125,144,216",
+         ["27", "144", "125", "216"], "144"),
+
+        ("What's bigger: 3/7 or 4/9?",
+         ["3/7", "4/9"], "4/9"),
+
+        ("Solve: (3×4)² ÷ 6",
+         ["12", "24", "36", "48"], "24"),
+
+        ("Sun : Day :: Moon : __",
+         ["Light", "Sky", "Night", "Dark"], "Night"),
+
+        ("Which weighs more?",
+         ["1 kg iron", "1 kg cotton", "Both same"], "Both same"),
+
+        ("45% of 200 =",
+         ["70", "80", "90", "100"], "90")
     ]
 
-    # -----------------------------
-    # LOAD RANDOM QUESTION
-    # -----------------------------
-    if "current_mcq" not in st.session_state:
-        st.session_state.current_mcq = random.choice(iq_mcq)
+    # Pick question
+    if "current_q" not in st.session_state:
+        st.session_state.current_q = random.choice(iq_mcq)
 
-    qdata = st.session_state.current_mcq
+    question, options, answer = st.session_state.current_q
 
-    st.subheader("👉 " + qdata["q"])
+    st.markdown(f"<div class='question-box'>{question}</div>", unsafe_allow_html=True)
 
-    user_choice = st.radio("Choose your answer:", qdata["options"])
+    user_choice = st.radio("Choose option:", options)
 
     if st.button("Submit Answer"):
-        chosen = user_choice[0]  # Extract A/B/C/D
-
-        if chosen == qdata["answer"]:
-            st.success("🔥 Correct bestie!! You’re literally Einstein 2.0 😭💙")
+        if user_choice == answer:
+            st.success("🔥 Correct bestie!! Genius brain unlocked 💙💖")
         else:
-            st.error(f"😭 Wrong babe… the right answer was **{qdata['answer']}** 💗")
+            st.error(f"😭 Wrong babe… the correct answer was **{answer}** 💗")
 
-    if st.button("New Question"):
-        st.session_state.current_mcq = random.choice(iq_mcq)
+    if st.button("Next Question"):
+        st.session_state.current_q = random.choice(iq_mcq)
         st.rerun()

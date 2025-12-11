@@ -6,7 +6,7 @@ import random
 # =====================================================
 # PAGE CONFIG
 # =====================================================
-st.set_page_config(page_title="StudyGenie — K Edition", layout="wide")
+st.set_page_config(page_title="StudyGenie — AI Study Bestie", layout="wide")
 
 # =====================================================
 # THEME SYSTEM (Default: Doraemon Blue Gradient)
